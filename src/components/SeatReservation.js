@@ -3,17 +3,17 @@ import { ref, onValue, set, update, remove } from "firebase/database";
 import { database } from "../firebase";
 
 const timeSlots = [
-  { label: "08:30~9:20 (1교시)", start: "08:30" },
-  { label: "9:30~10:20 (2교시)", start: "09:30" },
-  { label: "10:30~11:20 (3교시)", start: "10:30" },
-  { label: "11:30~12:20 (4교시)", start: "11:30" },
-  { label: "13:10~14:00 (5교시)", start: "13:10" },
-  { label: "14:10~15:00 (6교시)", start: "14:10" },
-  { label: "15:10~16:00 (7교시)", start: "15:10" },
-  { label: "16:20~17:10 (8교시)", start: "16:20" },
-  { label: "17:20~18:10 (9교시)", start: "17:20" },
-  { label: "19:10~20:20 (야자 1교시)", start: "19:10" },
-  { label: "20:30~22:00 (야자 2교시)", start: "20:30" },
+  { label: "08:30~09:20 (1교시)", start: "09:20" },
+  { label: "9:30~10:20 (2교시)", start: "10:20" },
+  { label: "10:30~11:20 (3교시)", start: "11:20" },
+  { label: "11:30~12:20 (4교시)", start: "12:20" },
+  { label: "13:10~14:00 (5교시)", start: "14:00" },
+  { label: "14:10~15:00 (6교시)", start: "15:00" },
+  { label: "15:10~16:00 (7교시)", start: "16:00" },
+  { label: "16:20~17:10 (8교시)", start: "17:10" },
+  { label: "17:20~18:10 (9교시)", start: "18:10" },
+  { label: "19:10~20:20 (야자 1교시)", start: "20:20" },
+  { label: "20:30~22:00 (야자 2교시)", start: "22:00" },
 ];
 
 function SeatReservation({ classroom, onBack, studentId }) {
