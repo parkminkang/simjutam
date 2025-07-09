@@ -3,17 +3,17 @@ import { ref, onValue, set, update, remove } from "firebase/database";
 import { database } from "../firebase";
 
 const timeSlots = [
-  { label: "08:30~09:20 (1교시)", start: "09:20" },
-  { label: "9:30~10:20 (2교시)", start: "10:20" },
-  { label: "10:30~11:20 (3교시)", start: "11:20" },
-  { label: "11:30~12:20 (4교시)", start: "12:20" },
-  { label: "13:10~14:00 (5교시)", start: "14:00" },
-  { label: "14:10~15:00 (6교시)", start: "15:00" },
-  { label: "15:10~16:00 (7교시)", start: "16:00" },
-  { label: "16:20~17:10 (8교시)", start: "17:10" },
-  { label: "17:20~18:10 (9교시)", start: "18:10" },
-  { label: "19:10~20:20 (야자 1교시)", start: "20:20" },
-  { label: "20:30~22:00 (야자 2교시)", start: "22:00" },
+  { label: "08:30~09:20 (1교시)", start: "08:30", end: "09:20" },
+  { label: "9:30~10:20 (2교시)", start: "09:30", end: "10:20" },
+  { label: "10:30~11:20 (3교시)", start: "10:30", end: "11:20" },
+  { label: "11:30~12:20 (4교시)", start: "11:30", end: "12:20" },
+  { label: "13:10~14:00 (5교시)", start: "13:10", end: "14:00" },
+  { label: "14:10~15:00 (6교시)", start: "14:10", end: "15:00" },
+  { label: "15:10~16:00 (7교시)", start: "15:10", end: "16:00" },
+  { label: "16:20~17:10 (8교시)", start: "16:20", end: "17:10" },
+  { label: "17:20~18:10 (9교시)", start: "17:20", end: "18:10" },
+  { label: "19:10~20:20 (야자 1교시)", start: "19:10", end: "20:20" },
+  { label: "20:30~22:00 (야자 2교시)", start: "20:30", end: "22:00" },
 ];
 
 function SeatReservation({ classroom, onBack, studentId }) {
@@ -26,7 +26,10 @@ function SeatReservation({ classroom, onBack, studentId }) {
   const isTeacher = studentId && studentId.startsWith("T-");
 
   useEffect(() => {
-    const reservationRef = ref(database, `reservedSeats/${selectedTime}/${classroom.name}`);
+    const reservationRef = ref(
+      database,
+      `reservedSeats/${selectedTime}/${classroom.name}`
+    );
     onValue(reservationRef, (snapshot) => {
       const data = snapshot.val();
       const newReserved = data ? Object.entries(data) : [];
@@ -47,7 +50,10 @@ function SeatReservation({ classroom, onBack, studentId }) {
             const seatEntries = Object.entries(seats);
             const allMatch = seatEntries.every(([, id]) => id === studentId);
 
-            if (allMatch && seatEntries.length === classroom.rows * classroom.cols) {
+            if (
+              allMatch &&
+              seatEntries.length === classroom.rows * classroom.cols
+            ) {
               myList.push({ time, seatId: `${roomName} (교실 전체)` });
             } else {
               seatEntries.forEach(([seatId, id]) => {
@@ -77,19 +83,26 @@ function SeatReservation({ classroom, onBack, studentId }) {
     setMySeat(seatId);
   };
 
+  // --- 예약 가능 시간 체크 함수 ---
+  const isPastSlot = (timeLabel) => {
+    const timeSlot = timeSlots.find((slot) => slot.label === timeLabel);
+    if (!timeSlot) return false;
+
+    const now = new Date();
+    const [endHour, endMinute] = timeSlot.end.split(":").map(Number);
+    const slotEnd = new Date();
+    slotEnd.setHours(endHour, endMinute, 0, 0);
+
+    return now > slotEnd;
+  };
+
   const handleReserve = () => {
     if (!studentId) {
       alert("학번 정보가 없습니다. 다시 로그인해주세요.");
       return;
     }
 
-    const now = new Date();
-    const slotStartStr = selectedTime.split("~")[0];
-    const [hour, minute] = slotStartStr.split(":").map(Number);
-    const slotStart = new Date();
-    slotStart.setHours(hour, minute, 0);
-
-    if (now > slotStart) {
+    if (isPastSlot(selectedTime)) {
       alert("이미 지난 시간은 예약할 수 없습니다.");
       return;
     }
@@ -105,7 +118,10 @@ function SeatReservation({ classroom, onBack, studentId }) {
       return;
     }
 
-    const seatRef = ref(database, `reservedSeats/${selectedTime}/${classroom.name}/${mySeat}`);
+    const seatRef = ref(
+      database,
+      `reservedSeats/${selectedTime}/${classroom.name}/${mySeat}`
+    );
     set(seatRef, studentId)
       .then(() => {
         alert("예약 완료!");
@@ -122,19 +138,16 @@ function SeatReservation({ classroom, onBack, studentId }) {
       return;
     }
 
-    const now = new Date();
-    const slotStartStr = selectedTime.split("~")[0];
-    const [hour, minute] = slotStartStr.split(":").map(Number);
-    const slotStart = new Date();
-    slotStart.setHours(hour, minute, 0);
-
-    if (now > slotStart) {
+    if (isPastSlot(selectedTime)) {
       alert("이미 지난 시간은 예약할 수 없습니다.");
       return;
     }
 
     try {
-      const reservationRef = ref(database, `reservedSeats/${selectedTime}/${classroom.name}`);
+      const reservationRef = ref(
+        database,
+        `reservedSeats/${selectedTime}/${classroom.name}`
+      );
       const snapshot = await new Promise((resolve) =>
         onValue(reservationRef, resolve, { onlyOnce: true })
       );
@@ -148,7 +161,9 @@ function SeatReservation({ classroom, onBack, studentId }) {
           seatIds.every((seatId) => data[seatId] === firstUserId);
 
         if (!allSameUser) {
-          alert("이미 일부 좌석이 예약되어 있어 교실 전체 예약이 불가능합니다.");
+          alert(
+            "이미 일부 좌석이 예약되어 있어 교실 전체 예약이 불가능합니다."
+          );
           return;
         }
 
@@ -162,7 +177,9 @@ function SeatReservation({ classroom, onBack, studentId }) {
       for (let r = 0; r < classroom.rows; r++) {
         for (let c = 1; c <= classroom.cols; c++) {
           const seatId = String.fromCharCode(65 + r) + c;
-          seatsToReserve[`reservedSeats/${selectedTime}/${classroom.name}/${seatId}`] = studentId;
+          seatsToReserve[
+            `reservedSeats/${selectedTime}/${classroom.name}/${seatId}`
+          ] = studentId;
         }
       }
 
@@ -353,10 +370,10 @@ function SeatReservation({ classroom, onBack, studentId }) {
         >
           {timeSlots.map((slot) => {
             const now = new Date();
-            const [h, m] = slot.start.split(":").map(Number);
-            const slotTime = new Date();
-            slotTime.setHours(h, m, 0);
-            const isPast = now > slotTime;
+            const [endH, endM] = slot.end.split(":").map(Number);
+            const slotEnd = new Date();
+            slotEnd.setHours(endH, endM, 0, 0);
+            const isPast = now > slotEnd;
 
             return (
               <option key={slot.label} value={slot.label} disabled={isPast}>
