@@ -69,6 +69,30 @@ function SeatReservation({ classroom, onBack, studentId }) {
     });
   }, [showReservations, studentId, classroom.rows, classroom.cols]);
 
+  useEffect(() => {
+  const cleanupExpiredReservations = () => {
+    const now = new Date();
+    timeSlots.forEach((slot) => {
+      const [endH, endM] = slot.end.split(":").map(Number);
+      const slotEndTime = new Date();
+      slotEndTime.setHours(endH, endM, 0, 0);
+
+      if (now > slotEndTime) {
+        const slotRef = ref(database, `reservedSeats/${slot.label}`);
+        remove(slotRef)
+          .then(() => {
+            console.log(`✅ ${slot.label} 시간대 예약 자동 삭제됨`);
+          })
+          .catch((err) => {
+            console.error(`❌ 예약 자동 삭제 실패 (${slot.label}):`, err);
+          });
+      }
+    });
+  };
+
+  cleanupExpiredReservations();
+}, []);
+
   const handleTimeChange = (e) => {
     setSelectedTime(e.target.value);
     setMySeat(null);
