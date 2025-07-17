@@ -5,7 +5,7 @@ import { database } from "../firebase";
 const classrooms = [
   { name: "수학전용실", rows: 3, cols: 4 },
   { name: "수학미디어스페이스실", rows: 2, cols: 5 },
-  { name: "홈베이스", rows: 3, cols: 6 },
+  { name: "홈베이스", rows: 6, cols:3 },
 ];
 
 function AdminDashboard({ onLogout, onBack }) {

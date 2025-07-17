@@ -13,7 +13,7 @@ const timeSlots = [
   { label: "16:20~17:10 (8교시)", start: "16:20", end: "17:10" },
   { label: "17:20~18:10 (9교시)", start: "17:20", end: "18:10" },
   { label: "19:10~20:20 (야자 1교시)", start: "19:10", end: "20:20" },
-  { label: "20:30~22:00 (야자 2교시)", start: "20:30", end: "22:00" },
+  { label: "20:30~24:00 (야자 2교시)", start: "20:30", end: "24:00" },
 ];
 
 function SeatReservation({ classroom, onBack, studentId }) {
@@ -81,10 +81,10 @@ function SeatReservation({ classroom, onBack, studentId }) {
         const slotRef = ref(database, `reservedSeats/${slot.label}`);
         remove(slotRef)
           .then(() => {
-            console.log(`✅ ${slot.label} 시간대 예약 자동 삭제됨`);
+            console.log(`${slot.label} 시간대 예약 자동 삭제됨`);
           })
           .catch((err) => {
-            console.error(`❌ 예약 자동 삭제 실패 (${slot.label}):`, err);
+            console.error(`예약 자동 삭제 실패 (${slot.label}):`, err);
           });
       }
     });
@@ -178,24 +178,38 @@ function SeatReservation({ classroom, onBack, studentId }) {
       const data = snapshot.val();
 
       if (data) {
-        const seatIds = Object.keys(data);
-        const firstUserId = data[seatIds[0]];
-        const allSameUser =
-          seatIds.length === classroom.rows * classroom.cols &&
-          seatIds.every((seatId) => data[seatId] === firstUserId);
+        const seatEntries = Object.entries(data).filter(
+          ([seatId, userId]) => !(seatId === "12" && userId === "Dummy")
+        );
 
-        if (!allSameUser) {
-          alert(
-            "이미 일부 좌석이 예약되어 있어 교실 전체 예약이 불가능합니다."
-          );
-          return;
-        }
+        // 예약된 좌석이 아예 없는 경우 = 전체 예약 가능
+        if (seatEntries.length === 0) {
+          // 그냥 통과 (전체 예약 가능)
+        } else {
+          const seatIds = seatEntries.map(([seatId]) => seatId);
+          const userIds = seatEntries.map(([, userId]) => userId);
+          const firstUserId = userIds[0];
 
-        if (allSameUser && firstUserId === studentId) {
-          alert("이미 이 교실 전체를 예약하셨습니다.");
-          return;
+          const allSameUser =
+            seatIds.length === classroom.rows * classroom.cols &&
+            userIds.every((id) => id === firstUserId);
+
+          if (!allSameUser) {
+            alert("이미 일부 좌석이 예약되어 있어 교실 전체 예약이 불가능합니다.");
+            return;
+          } 
+
+          if (allSameUser && firstUserId === studentId) {
+            alert("이미 이 교실 전체를 예약하셨습니다.");
+            return;
+          }
         }
       }
+
+
+
+
+
 
       const seatsToReserve = {};
       for (let r = 0; r < classroom.rows; r++) {
